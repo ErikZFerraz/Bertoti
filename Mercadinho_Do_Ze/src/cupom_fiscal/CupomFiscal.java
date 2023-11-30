@@ -32,7 +32,6 @@ class CupomFiscal {
     }
 
     public void imprimirCupom() {
-        
         System.out.println("CUPOM FISCAL");
         System.out.printf("Cliente: %s\nCPF: %s\nData do Pedido: %s\nForma de Pagamento: %s\n", cliente.getNome(), cliente.getCpf(), cliente.getDataPedido(), cliente.getFormPagamento());
         System.out.println("ITEM CODIGO DESCRICAO QTD.UN.VL TOTAL");
