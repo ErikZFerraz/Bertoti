@@ -1,0 +1,3 @@
+interface Graphic {
+    void print();
+}
