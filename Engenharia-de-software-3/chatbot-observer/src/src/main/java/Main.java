@@ -2,17 +2,24 @@ import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 
 public class Main {
     public static void main(String[] args) {
-        String botToken = "7527608316:AAGkw-8OBTelQo5bX9mpSzx0Y5Z1ozBY8pg";
+        String botToken = "6621767934:AAFLxf_Lnb_BQNtw74-Yly0ajUuqFi0Ik2w";  // Token do seu bot
+
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
+            // Criação do bot
             MyAmazingBot bot = new MyAmazingBot(botToken);
 
-            bot.setDiscountStrategy(new PercentageDiscountStrategy(20));
+            // Adiciona a estratégia de notícias padrão (Esportes, Tecnologia, Economia)
+            bot.setNewsStrategy(new SportsNewsStrategy());  // Inicializa com Esportes, mas pode ser alterado
 
-            bot.addObserver(new PurchaseNotifier());
-            bot.addObserver(new EmailNotifier());
+            // Adiciona observadores para monitorar o envio de notícias
+            bot.addObserver(new ConsoleNewsLogger());  // Exibe no console sempre que uma notícia é enviada
+            bot.addObserver(new TelegramNewsNotifier());  // Envia a notificação para outro chat ou grupo
 
+            // Registra o bot no Telegram
             botsApplication.registerBot(botToken, bot);
-            System.out.println("MyAmazingBot foi inicializado com sucesso!");
+            System.out.println("MeuAmazingBot foi inicializado com sucesso!");
+
+            // Mantém o bot em execução
             Thread.currentThread().join();
         } catch (Exception e) {
             e.printStackTrace();

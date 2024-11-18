@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 // Estratégia de seleção de notícias
 interface NewsStrategy {
@@ -14,23 +15,41 @@ interface NewsStrategy {
 }
 
 class SportsNewsStrategy implements NewsStrategy {
+    private final String[] sportsNews = {
+        "Hoje é dia de jogo! Seu time enfrentará os rivais no campeonato.",
+        "O time está em ótima forma! Prontos para a final do torneio.",
+        "A temporada de esportes está agitada, com surpresas incríveis!"
+    };
+
     @Override
     public String getNews(String topic) {
-        return "Notícia de Esportes: Seu time favorito venceu o jogo!";
+        return sportsNews[new Random().nextInt(sportsNews.length)];
     }
 }
 
 class TechnologyNewsStrategy implements NewsStrategy {
+    private final String[] techNews = {
+        "Novo software promete revolucionar a maneira como usamos dispositivos!",
+        "Fique atento, a inteligência artificial está em todo lugar, até no seu celular.",
+        "As inovações tecnológicas estão cada vez mais acessíveis, não perca!"
+    };
+
     @Override
     public String getNews(String topic) {
-        return "Notícia de Tecnologia: Novo smartphone lançado com funcionalidades incríveis!";
+        return techNews[new Random().nextInt(techNews.length)];
     }
 }
 
 class EconomyNewsStrategy implements NewsStrategy {
+    private final String[] economyNews = {
+        "Os mercados estão reagindo positivamente às novas políticas econômicas.",
+        "A bolsa de valores teve uma alta surpreendente após as últimas negociações.",
+        "Investir no momento é uma jogada inteligente, com vários setores em alta!"
+    };
+
     @Override
     public String getNews(String topic) {
-        return "Notícia de Economia: Mercado de ações em alta após anúncio econômico!";
+        return economyNews[new Random().nextInt(economyNews.length)];
     }
 }
 
@@ -42,7 +61,7 @@ interface NewsObserver {
 class ConsoleNewsLogger implements NewsObserver {
     @Override
     public void onNewsSent(String topic, String news) {
-        System.out.println("Notícia enviada sobre " + topic + ": " + news);
+        System.out.println("Notícia sobre " + topic + ": " + news);
     }
 }
 
@@ -77,22 +96,33 @@ public class MyAmazingBot implements LongPollingSingleThreadUpdateConsumer {
             long chatId = update.getMessage().getChatId();
 
             String topic = "";
-            if (messageText.equalsIgnoreCase("/news_sports")) {
+            if (messageText.equalsIgnoreCase("/sports")) {
                 topic = "Esportes";
                 setNewsStrategy(new SportsNewsStrategy());
-            } else if (messageText.equalsIgnoreCase("/news_technology")) {
+            } else if (messageText.equalsIgnoreCase("/tech")) {
                 topic = "Tecnologia";
                 setNewsStrategy(new TechnologyNewsStrategy());
-            } else if (messageText.equalsIgnoreCase("/news_economy")) {
+            } else if (messageText.equalsIgnoreCase("/economy")) {
                 topic = "Economia";
                 setNewsStrategy(new EconomyNewsStrategy());
-            } else {
-                SendMessage message = SendMessage.builder()
+            } else if (messageText.equalsIgnoreCase("/help")) {
+                SendMessage helpMessage = SendMessage.builder()
                         .chatId(chatId)
-                        .text("Comando desconhecido. Tente /news_sports, /news_technology ou /news_economy.")
+                        .text("Comandos disponíveis: /sports, /tech, /economy")
                         .build();
                 try {
-                    telegramClient.execute(message);
+                    telegramClient.execute(helpMessage);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+                return;
+            } else {
+                SendMessage unknownCommandMessage = SendMessage.builder()
+                        .chatId(chatId)
+                        .text("Comando não reconhecido. Tente /sports, /tech ou /economy.")
+                        .build();
+                try {
+                    telegramClient.execute(unknownCommandMessage);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
@@ -103,8 +133,9 @@ public class MyAmazingBot implements LongPollingSingleThreadUpdateConsumer {
             String news = newsStrategy.getNews(topic);
             SendMessage message = SendMessage.builder()
                     .chatId(chatId)
-                    .text("Última notícia sobre " + topic + ": " + news)
+                    .text("Aqui está a última notícia sobre " + topic + ": " + news)
                     .build();
+
             try {
                 telegramClient.execute(message);
                 notifyObservers(topic, news);
